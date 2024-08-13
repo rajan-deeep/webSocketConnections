@@ -10,13 +10,13 @@ How to up?
     "id": "123"
   }
 
-{
+7. {
     "action": "message",
     "id": "123",
     "msg": "Hello, ws clients!"
 }
 
-{
+8. {
     "action": "unsubscribe",
     "id": "123"
 }
