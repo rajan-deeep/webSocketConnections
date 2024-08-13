@@ -20,4 +20,4 @@ RUN mkdir -p /app/logs && \
     chmod -R 775 /app/logs
 
 # Set the entry point with JVM options for debugging and running the application
-ENTRYPOINT ["java", "-Xms512m", "-Xmx1024m", "-XX:+UseG1GC", "-XX:ParallelGCThreads=4", "-XX:G1HeapRegionSize=4m", "-XX:MaxMetaspaceSize=256m", "-agentlib:jdwp=transport=dt_socket,address=*:5005,server=y,suspend=n", "-jar", "/app/app.jar"]
+ENTRYPOINT ["java", "-Xms128m", "-Xmx512m", "-XX:+UseG1GC", "-XX:ParallelGCThreads=4", "-XX:G1HeapRegionSize=4m", "-XX:MaxMetaspaceSize=256m", "-agentlib:jdwp=transport=dt_socket,address=*:5005,server=y,suspend=n", "-jar", "/app/app.jar"]
