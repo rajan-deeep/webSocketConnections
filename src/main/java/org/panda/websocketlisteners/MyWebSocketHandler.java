@@ -1,22 +1,27 @@
 package org.panda.websocketlisteners;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.web.socket.CloseStatus;
+import lombok.extern.slf4j.Slf4j;
+import org.panda.services.WebSocketService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
+@Service
+@Slf4j
 public class MyWebSocketHandler extends TextWebSocketHandler {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final WebSocketService webSocketService;
 
-    // Map of ID to a list of WebSocket sessions
-    public static Map<String, List<WebSocketSession>> idToSocketMap = new HashMap<>();
+    @Autowired
+    public MyWebSocketHandler(WebSocketService webSocketService) {
+        this.webSocketService = webSocketService;
+    }
 
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
@@ -27,32 +32,16 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
 
         switch (action) {
             case "subscribe":
-                // Add the session to the list of sessions for the given ID
-                idToSocketMap.computeIfAbsent(id, k -> new ArrayList<>()).add(session);
-                session.sendMessage(new TextMessage("Subscribed to ID: " + id));
+                webSocketService.subscribe(session, id);
                 break;
 
             case "unsubscribe":
-                // Remove the session from the list of sessions for the given ID
-                List<WebSocketSession> sessions = idToSocketMap.get(id);
-                if (sessions != null) {
-                    sessions.remove(session);
-                    if (sessions.isEmpty()) {
-                        idToSocketMap.remove(id); // Clean up empty lists
-                    }
-                }
-                session.sendMessage(new TextMessage("Unsubscribed from ID: " + id));
-                session.close(CloseStatus.NORMAL);
+                webSocketService.unsubscribe(session, id);
                 break;
 
             case "message":
-                // Send a message to all sessions subscribed to the given ID
-                List<WebSocketSession> subscribedSessions = idToSocketMap.get(id);
-                if (subscribedSessions != null) {
-                    for (WebSocketSession webSocketSession : subscribedSessions) {
-                        webSocketSession.sendMessage(new TextMessage((String) map.get("msg")));
-                    }
-                }
+                String msg = (String) map.get("msg");
+                webSocketService.publishMessage(session, id, msg);
                 break;
 
             default:
